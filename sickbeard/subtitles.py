@@ -29,12 +29,12 @@ from sickbeard import db
 try:
     import subliminal
     SUBLIMINAL_SUPPORT = True
-except ImportError:
+except:
     SUBLIMINAL_SUPPORT = False
 
 SINGLE = 'und'
 def sortedPluginList():
-    pluginsMapping = dict([(x.lower(), x) for x in subliminal.PLUGINS])
+    pluginsMapping = dict([(x.lower(), x) for x in subliminal.SERVICES])
 
     newList = []
 
@@ -42,16 +42,14 @@ def sortedPluginList():
     curIndex = 0
     for curPlugin in sickbeard.SUBTITLES_PLUGINS_LIST:
         if curPlugin in pluginsMapping:
-            curPluginDict = {'id': curPlugin, 'image': curPlugin+'.png', 'name': pluginsMapping[curPlugin], 'enabled': sickbeard.SUBTITLES_PLUGINS_ENABLED[curIndex] == 1,
-                'api_based': pluginsMapping[curPlugin] in subliminal.API_PLUGINS, 'url': getattr(subliminal.plugins, pluginsMapping[curPlugin]).site_url}
+            curPluginDict = {'id': curPlugin, 'image': curPlugin+'.png', 'name': pluginsMapping[curPlugin], 'enabled': sickbeard.SUBTITLES_PLUGINS_ENABLED[curIndex] == 1}
             newList.append(curPluginDict)
         curIndex += 1
 
     # add any plugins that are missing from that list
     for curPlugin in pluginsMapping.keys():
         if curPlugin not in [x['id'] for x in newList]:
-            curPluginDict = {'id': curPlugin, 'image': curPlugin+'.png', 'name': pluginsMapping[curPlugin], 'enabled': False,
-                'api_based': pluginsMapping[curPlugin] in subliminal.API_PLUGINS, 'url': getattr(subliminal.plugins, pluginsMapping[curPlugin]).site_url}
+            curPluginDict = {'id': curPlugin, 'image': curPlugin+'.png', 'name': pluginsMapping[curPlugin], 'enabled': False}
             newList.append(curPluginDict)
 
     return newList
@@ -73,7 +71,7 @@ def wantedLanguages(sqlLike = False):
 
 def subtitlesLanguages(video_path):
     """Return a list detected subtitles for the given video file"""
-    video = subliminal.videos.Video.fromPath(video_path)
+    video = subliminal.videos.Video.from_path(video_path)
     subtitles = video.scan()
     languages = set()
     for subtitle in subtitles:
@@ -121,13 +119,13 @@ class SubtitlesFinder():
                 logger.log('Episode file does not exist, cannot download subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
                 continue
             # Old shows rule
-            if epToSub['airdate_daydiff'] > 7 and epToSub['searchcount'] < 2 and (now - datetime.datetime.strptime(epToSub['lastsearch'], '%Y-%m-%d %H:%M:%S')) > datetime.timedelta(hours=rules['old'][epToSub['searchcount']]):
+            if epToSub['airdate_daydiff'] > 7 and epToSub['searchcount'] < 2 and (now - datetime.datetime.strptime(epToSub['lastsearch'], '%Y-%m-%d %H:%M:%S.%f')) > datetime.timedelta(hours=rules['old'][epToSub['searchcount']]):
                 logger.log('Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
                 locations.append(epToSub['location'])
                 toRefresh.append((epToSub['showid'], epToSub['season'], epToSub['episode']))
                 continue
             # Recent shows rule
-            if epToSub['airdate_daydiff'] <= 7 and epToSub['searchcount'] < 7 and (now - datetime.datetime.strptime(epToSub['lastsearch'], '%Y-%m-%d %H:%M:%S')) > datetime.timedelta(hours=rules['new'][epToSub['searchcount']]):
+            if epToSub['airdate_daydiff'] <= 7 and epToSub['searchcount'] < 7 and (now - datetime.datetime.strptime(epToSub['lastsearch'], '%Y-%m-%d %H:%M:%S.%f')) > datetime.timedelta(hours=rules['new'][epToSub['searchcount']]):
                 logger.log('Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
                 locations.append(epToSub['location'])
                 toRefresh.append((epToSub['showid'], epToSub['season'], epToSub['episode']))
@@ -141,9 +139,8 @@ class SubtitlesFinder():
             return
 
         # download subtitles
-        with subliminal.Subliminal(cache_dir=sickbeard.CACHE_DIR, workers=2, multi=sickbeard.SUBTITLES_MULTI, force=False, max_depth=3,
-                                   languages=sickbeard.SUBTITLES_LANGUAGES, plugins=sickbeard.subtitles.getEnabledPluginList()) as subli:
-            subtitles = subli.downloadSubtitles(locations)
+        subtitles = subliminal.download_subtitles(paths=locations, languages=sickbeard.SUBTITLES_LANGUAGES, services=sickbeard.subtitles.getEnabledPluginList(), force=False, 
+            multi=sickbeard.SUBTITLES_MULTI, cache_dir=sickbeard.CACHE_DIR, max_depth=3, scan_filter=None, order=None)
         for subtitle in subtitles:
             helpers.chmodAsParent(subtitle.path)
         if subtitles:

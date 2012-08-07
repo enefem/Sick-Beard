@@ -53,11 +53,8 @@
                         #for $curPlugin in $sickbeard.subtitles.sortedPluginList():
                           <li class="ui-state-default" id="$curPlugin.id">
                             <input type="checkbox" id="enable_$curPlugin.id" class="plugin_enabler" #if $curPlugin.enabled then "checked=\"checked\"" else ""#/>
-                            <a href="$curPlugin.url" class="imgLink" target="_new">
                                 <img src="$sbRoot/images/subtitles/$curPlugin.image" alt="$curPlugin.name" title="$curPlugin.name" width="16" height="16" />
                                 $curPlugin.name
-                                #if not $curPlugin.api_based then "*" else ""#
-                            </a>
                           </li>
                         #end for
                         </ul>
