@@ -110,10 +110,10 @@ def daemonize():
 
 def getSystemDataDir(progdir):
     if sys.platform == 'darwin':
-        home = os.environ.get('HOME')
-        if home:
-            return '%s/Library/Application Support/SickBeard' % home
-        else:
+        #home = os.environ.get('HOME')
+        #if home:
+        #    return '%s/Library/Application Support/SickBeard' % home
+        #else:
             return progdir
     else:
         #TODO: implement for other os
