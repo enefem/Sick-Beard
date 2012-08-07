@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding=UTF-8
 # Author: Dennis Lutter <lad1337@gmail.com>
 # URL: http://code.google.com/p/sickbeard/
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     import glob
     import unittest
 
-    test_file_strings = [ x for x in glob.glob('*_tests.py') if x != __file__]
+    test_file_strings = [ x for x in glob.glob('*_tests.py') if not x in __file__]
     module_strings = [file_string[0:len(file_string) - 3] for file_string in test_file_strings]
     suites = [unittest.defaultTestLoader.loadTestsFromName(file_string) for file_string in module_strings]
     testSuite = unittest.TestSuite(suites)

@@ -23,13 +23,11 @@ import unittest
 import test_lib as test
 
 import sys, os.path
-sys.path.append(os.path.abspath('..'))
-sys.path.append(os.path.abspath('../lib'))
-
 
 from sickbeard.postProcessor import PostProcessor
 import sickbeard
 from sickbeard.tv import TVEpisode, TVShow
+
 
 class PPInitTests(unittest.TestCase):
 
@@ -41,6 +39,7 @@ class PPInitTests(unittest.TestCase):
 
     def test_init_folder_name(self):
         self.assertEqual(self.pp.folder_name, test.SHOWNAME)
+
 
 class PPPrivateTests(test.SickbeardTestDBCase):
 
@@ -81,13 +80,20 @@ class PPPrivateTests(test.SickbeardTestDBCase):
 
 
 class PPBasicTests(test.SickbeardTestDBCase):
-    def setUp(self):
-        super(PPBasicTests, self).setUp()
-        self.pp = PostProcessor(test.FILEPATH)
 
-    @unittest.skip("this test is not fully configured / implmented")
     def test_process(self):
-        self.assertTrue(self.pp.process())
+        show = TVShow(3)
+        show.name = test.SHOWNAME
+        show.location = test.SHOWDIR
+        show.saveToDB()
+
+        sickbeard.showList = [show]
+        ep = TVEpisode(show, test.SEASON, test.EPISODE)
+        ep.name = "some ep name"
+        ep.saveToDB()
+
+        pp = PostProcessor(test.FILEPATH)
+        self.assertTrue(pp.process())
 
 
 if __name__ == '__main__':

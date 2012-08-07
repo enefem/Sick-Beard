@@ -9,26 +9,25 @@ from sickbeard import show_name_helpers, scene_exceptions, common, name_cache
 import sickbeard
 from sickbeard import db
 from sickbeard.databases import cache_db
+from sickbeard.tv import TVShow as Show
 
-class Show:
-    def __init__(self, name, tvdbid, tvrname):
-        self.name = name
-        self.tvdbid = tvdbid
-        self.tvrname = tvrname
 
-class SceneTests(unittest.TestCase):
+class SceneTests(test.SickbeardTestDBCase):
     
     def _test_sceneToNormalShowNames(self, name, expected):
         result = show_name_helpers.sceneToNormalShowNames(name)
         self.assertTrue(len(set(expected).intersection(set(result))) == len(expected))
 
-        dot_result = show_name_helpers.sceneToNormalShowNames(name.replace(' ','.'))
-        dot_expected = [x.replace(' ','.') for x in expected]
+        dot_result = show_name_helpers.sceneToNormalShowNames(name.replace(' ', '.'))
+        dot_expected = [x.replace(' ', '.') for x in expected]
         self.assertTrue(len(set(dot_expected).intersection(set(dot_result))) == len(dot_expected))
         
     def _test_allPossibleShowNames(self, name, tvdbid=0, tvrname=None, expected=[]):
+        s = Show(tvdbid)
+        s.name = name
+        s.tvrname = tvrname
         
-        result = show_name_helpers.allPossibleShowNames(Show(name, tvdbid, tvrname))
+        result = show_name_helpers.allPossibleShowNames(s)
         self.assertTrue(len(set(expected).intersection(set(result))) == len(expected))
 
     def _test_filterBadReleases(self, name, expected):
@@ -39,14 +38,20 @@ class SceneTests(unittest.TestCase):
         self.assertTrue(show_name_helpers.isGoodResult(name, show))
 
     def test_isGoodName(self):
-        self._test_isGoodName('Show.Name.S01E02.Test-Test', Show('Show/Name', 0, ''))
-        self._test_isGoodName('Show.Name.S01E02.Test-Test', Show('Show. Name', 0, ''))
-        self._test_isGoodName('Show.Name.S01E02.Test-Test', Show('Show- Name', 0, ''))
-        self._test_isGoodName('Show.Name.Part.IV.Test-Test', Show('Show Name', 0, ''))
-        self._test_isGoodName('Show.Name.1x02.Test-Test', Show('Show Name', 0, ''))
-        self._test_isGoodName('Show.Name.S01.Test-Test', Show('Show Name', 0, ''))
-        self._test_isGoodName('Show.Name.E02.Test-Test', Show('Show: Name', 0, ''))
-        self._test_isGoodName('Show Name Season 2 Test', Show('Show: Name', 0, ''))
+        listOfcases = [('Show.Name.S01E02.Test-Test', 'Show/Name'),
+                        ('Show.Name.S01E02.Test-Test', 'Show. Name'),
+                        ('Show.Name.S01E02.Test-Test', 'Show- Name'),
+                        ('Show.Name.Part.IV.Test-Test', 'Show Name'),
+                        ('Show.Name.S01.Test-Test', 'Show Name'),
+                        ('Show.Name.E02.Test-Test', 'Show: Name'),
+                        ('Show Name Season 2 Test', 'Show: Name'),
+                        ]
+
+        for testCase in listOfcases:
+            scene_name, show_name = testCase
+            s = Show(0)
+            s.name = show_name
+            self._test_isGoodName(scene_name, s)
 
     def test_sceneToNormalShowNames(self):
         self._test_sceneToNormalShowNames('Show Name 2010', ['Show Name 2010', 'Show Name (2010)'])
@@ -78,7 +83,6 @@ class SceneTests(unittest.TestCase):
         self._test_allPossibleShowNames('Show Name (FCN)', -1, 'TVRage Name', expected=['Show Name (FCN)', 'Show Name (Full Country Name)', 'Exception Test', 'TVRage Name'])
 
     def test_filterBadReleases(self):
-        
         self._test_filterBadReleases('Show.S02.German.Stuff-Grp', False)
         self._test_filterBadReleases('Show.S02.Some.Stuff-Core2HD', False)
         self._test_filterBadReleases('Show.S02.Some.German.Stuff-Grp', False)
@@ -86,14 +90,11 @@ class SceneTests(unittest.TestCase):
         self._test_filterBadReleases('Show.S02.This.Is.German', False)
 
 
+class SceneExceptionTestCase(test.SickbeardTestDBCase):
 
-
-print 'Loading exceptions...',
-db.upgradeDatabase(db.DBConnection("cache.db"), cache_db.InitialSchema)
-scene_exceptions.retrieve_exceptions()
-print 'done.'
-
-class SceneExceptionTestCase(unittest.TestCase):
+    def setUp(self):
+        super(SceneExceptionTestCase, self).setUp()
+        scene_exceptions.retrieve_exceptions()
 
     def test_sceneExceptionsEmpty(self):
         self.assertEqual(scene_exceptions.get_scene_exceptions(0), [])
@@ -131,7 +132,7 @@ class SceneExceptionTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        suite = unittest.TestLoader().loadTestsFromName('scene_helpers_tests.SceneExceptionTestCase.test_'+sys.argv[1])
+        suite = unittest.TestLoader().loadTestsFromName('scene_helpers_tests.SceneExceptionTestCase.test_' + sys.argv[1])
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
         suite = unittest.TestLoader().loadTestsFromTestCase(SceneTests)
