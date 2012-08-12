@@ -1451,7 +1451,7 @@ class TVEpisode(object):
         newValueDict = {"tvdbid": self.tvdbid,
                         "name": self.name,
                         "description": self.description,
-                        "subtitles": ",".join(self.subtitles),
+                        "subtitles": ",".join(str(subtitle) for subtitle in self.subtitles),
                         "subtitles_searchcount": self.subtitles_searchcount,
                         "subtitles_lastsearch": self.subtitles_lastsearch,
                         "airdate": self.airdate.toordinal(),

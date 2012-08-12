@@ -125,13 +125,13 @@ class SubtitlesFinder():
             # Old shows rule
             if epToSub['airdate_daydiff'] > 7 and epToSub['searchcount'] < 2 and (now - lastsearch) > datetime.timedelta(hours=rules['old'][epToSub['searchcount']]):
                 logger.log(u'Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
-                locations.append(epToSub['location'])
+                locations.append(epToSub['location'].encode('ascii', 'ignore'))
                 toRefresh.append((epToSub['showid'], epToSub['season'], epToSub['episode']))
                 continue
             # Recent shows rule
             if epToSub['airdate_daydiff'] <= 7 and epToSub['searchcount'] < 7 and (now - lastsearch) > datetime.timedelta(hours=rules['new'][epToSub['searchcount']]):
                 logger.log(u'Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
-                locations.append(epToSub['location'])
+                locations.append(epToSub['location'].encode('ascii', 'ignore'))
                 toRefresh.append((epToSub['showid'], epToSub['season'], epToSub['episode']))
                 continue
             # Not matching my rules
