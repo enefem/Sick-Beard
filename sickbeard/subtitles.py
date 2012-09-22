@@ -116,7 +116,7 @@ class SubtitlesFinder():
 
         for epToSub in sqlResults:
             if not ek.ek(os.path.isfile, epToSub['location']):
-                logger.log('Episode file does not exist, cannot download subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
+                logger.log(u'Episode file does not exist, cannot download subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
                 continue
             try:
                 lastsearch = datetime.datetime.strptime(epToSub['lastsearch'], '%Y-%m-%d %H:%M:%S')
@@ -124,14 +124,14 @@ class SubtitlesFinder():
                 lastsearch = datetime.datetime.strptime(epToSub['lastsearch'], '%Y-%m-%d %H:%M:%S.%f')
             # Old shows rule
             if epToSub['airdate_daydiff'] > 7 and epToSub['searchcount'] < 2 and (now - lastsearch) > datetime.timedelta(hours=rules['old'][epToSub['searchcount']]):
-                logger.log('Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
+                logger.log(u'Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
                 locations.append(epToSub['location'].encode('ascii', 'ignore'))
                 toRefresh.append((epToSub['showid'], epToSub['season'], epToSub['episode']))
                 continue
             # Recent shows rule
             if epToSub['airdate_daydiff'] <= 7 and epToSub['searchcount'] < 7 and (now - lastsearch) > datetime.timedelta(hours=rules['new'][epToSub['searchcount']]):
-                logger.log('Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
-                locations.append(epToSub['location'].decode('ascii', 'ignore'))
+                logger.log(u'Downloading subtitles for episode %dx%d of show %s' % (epToSub['season'], epToSub['episode'], epToSub['show_name']), logger.DEBUG)
+                locations.append(epToSub['location'].encode('ascii', 'ignore'))
                 toRefresh.append((epToSub['showid'], epToSub['season'], epToSub['episode']))
                 continue
             # Not matching my rules
@@ -139,7 +139,7 @@ class SubtitlesFinder():
 
         # stop here if we don't have subtitles to download
         if not locations:
-            logger.log('No subtitles to download', logger.MESSAGE)
+            logger.log(u'No subtitles to download', logger.MESSAGE)
             return
 
         # download subtitles
@@ -148,9 +148,9 @@ class SubtitlesFinder():
         for subtitle in subtitles:
             helpers.chmodAsParent(subtitle.path)
         if subtitles:
-            logger.log('Downloaded %d subtitles' % len(subtitles), logger.MESSAGE)
+            logger.log(u'Downloaded %d subtitles' % len(subtitles), logger.MESSAGE)
         else:
-            logger.log('No subtitles found', logger.MESSAGE)
+            logger.log(u'No subtitles found', logger.MESSAGE)
 
         # refresh each show
         self._refreshShows(toRefresh, now)
