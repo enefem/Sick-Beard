@@ -431,11 +431,11 @@ class AddSubtitlesSupport(FixAirByDateSetting):
 class AddSizeAndSceneNameFields(FixAirByDateSetting):
 
     def test(self):
-        return self.checkDBVersion() >= 10
+        return self.checkDBVersion() >= 11
     
     def execute(self):
 
-        backupDatabase(10)
+        backupDatabase(11)
 
         if not self.hasColumn("tv_episodes", "file_size"):
             self.addColumn("tv_episodes", "file_size")
@@ -533,13 +533,13 @@ class AddSizeAndSceneNameFields(FixAirByDateSetting):
 class RenameSeasonFolders(AddSizeAndSceneNameFields):
 
     def test(self):
-        return self.checkDBVersion() >= 11
+        return self.checkDBVersion() >= 12
     
     def execute(self):
         
         # rename the column
         self.connection.action("ALTER TABLE tv_shows RENAME TO tmp_tv_shows")
-        self.connection.action("CREATE TABLE tv_shows (show_id INTEGER PRIMARY KEY, location TEXT, show_name TEXT, tvdb_id NUMERIC, network TEXT, genre TEXT, runtime NUMERIC, quality NUMERIC, airs TEXT, status TEXT, flatten_folders NUMERIC, paused NUMERIC, startyear NUMERIC, tvr_id NUMERIC, tvr_name TEXT, air_by_date NUMERIC, lang TEXT)")
+        self.connection.action("CREATE TABLE tv_shows (show_id INTEGER PRIMARY KEY, location TEXT, show_name TEXT, tvdb_id NUMERIC, network TEXT, genre TEXT, runtime NUMERIC, quality NUMERIC, airs TEXT, status TEXT, flatten_folders NUMERIC, paused NUMERIC, startyear NUMERIC, tvr_id NUMERIC, tvr_name TEXT, air_by_date NUMERIC, lang TEXT, subtitles INTEGER NOT NULL DEFAULT 0)")
         sql = "INSERT INTO tv_shows(show_id, location, show_name, tvdb_id, network, genre, runtime, quality, airs, status, flatten_folders, paused, startyear, tvr_id, tvr_name, air_by_date, lang) SELECT show_id, location, show_name, tvdb_id, network, genre, runtime, quality, airs, status, seasonfolders, paused, startyear, tvr_id, tvr_name, air_by_date, lang FROM tmp_tv_shows"
         self.connection.action(sql)
         

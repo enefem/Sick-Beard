@@ -182,7 +182,7 @@ class ShowQueueItem(generic_queue.QueueItem):
 
 
 class QueueItemAdd(ShowQueueItem):
-    def __init__(self, tvdb_id, showDir, default_status, quality, flatteb_folders, lang, subtitles):
+    def __init__(self, tvdb_id, showDir, default_status, quality, flatten_folders, lang, subtitles):
 
         self.tvdb_id = tvdb_id
         self.showDir = showDir
